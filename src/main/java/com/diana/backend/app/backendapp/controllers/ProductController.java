@@ -20,12 +20,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.diana.backend.app.backendapp.models.entities.Product;
+import com.diana.backend.app.backendapp.models.entities.Student;
 import com.diana.backend.app.backendapp.services.ProductService;
 
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/product")
+@RequestMapping("/api/course")
 @CrossOrigin(originPatterns = "*")
 public class ProductController {
   
@@ -65,6 +66,29 @@ public class ProductController {
     Optional<Product> o = service.update(product, id);
     if(o.isPresent()){
       return ResponseEntity.status(HttpStatus.CREATED).body(o.orElseThrow());
+    }
+    return ResponseEntity.notFound().build();
+  }
+
+  @PutMapping("/{id}/addStudent")
+  public ResponseEntity<?> addStudent(@RequestBody Student student,  @PathVariable Long id){
+    Optional<Product> o = service.findById(id);
+    if(o.isPresent()){
+      Product course = o.get();
+      course.addStudent(student);
+      return ResponseEntity.status(HttpStatus.CREATED).body(service.save(course));
+    }
+    return ResponseEntity.notFound().build();
+  }
+
+
+  @PutMapping("/{id}/removeStudent")
+  public ResponseEntity<?> removeStudent(@RequestBody Student student,  @PathVariable Long id){
+    Optional<Product> o = service.findById(id);
+    if(o.isPresent()){
+      Product course = o.get();
+      course.removeStudent(student);
+      return ResponseEntity.status(HttpStatus.CREATED).body(service.save(course));
     }
     return ResponseEntity.notFound().build();
   }

@@ -8,9 +8,7 @@ import org.springframework.data.repository.CrudRepository;
 import com.diana.backend.app.backendapp.models.entities.User;
 
 public interface UserRepository extends CrudRepository<User, Long>{
-
-  Optional<User> findByUsername(String username);
   
-  @Query("select u from User u where u.username=?1")
-  Optional<User> getUserByUsername(String username);
+  @Query("SELECT u FROM User u WHERE u.username=?1")
+  Optional<User> findByUsername( String username);
 }

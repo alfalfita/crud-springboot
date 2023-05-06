@@ -1,5 +1,9 @@
 package com.diana.backend.app.backendapp.auth.filters;
 
+import static com.diana.backend.app.backendapp.auth.TokenJwtConfig.HEADER_AUTHORIZATION;
+import static com.diana.backend.app.backendapp.auth.TokenJwtConfig.PREFIX_TOKEN;
+import static com.diana.backend.app.backendapp.auth.TokenJwtConfig.SECRET_KEY;
+
 import java.io.IOException;
 import java.util.Base64;
 import java.util.HashMap;
@@ -9,6 +13,9 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.diana.backend.app.backendapp.models.entities.User;
@@ -20,16 +27,17 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import static com.diana.backend.app.backendapp.auth.TokenJwtConfig.*;
 
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter{
 
+  private final UserDetailsService userDetailsService;
+
 private AuthenticationManager authenticationManager;
-  public JwtAuthenticationFilter(AuthenticationManager authenticationManager){
+  public JwtAuthenticationFilter(AuthenticationManager authenticationManager, UserDetailsService userDetailsService){
    this.authenticationManager = authenticationManager;
+   this.userDetailsService = userDetailsService;
   }
 
-  // se invoca cuando se llma a /login con POST
   @Override
   public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
       throws AuthenticationException {
@@ -42,15 +50,20 @@ private AuthenticationManager authenticationManager;
           username = user.getUsername();
           password = user.getPassword();
 
+          UserDetails userDetails =  userDetailsService.loadUserByUsername(username);
+          boolean passwordMatch = BCrypt.checkpw(password, userDetails.getPassword());
+          if (passwordMatch) {
+              System.out.println("Autenticación exitosa");
+          } else {
+              System.out.println("Credenciales inválidas");
+          }
+
           logger.info("Authentication");
         } catch (StreamReadException e) {
-          // TODO Auto-generated catch block
           e.printStackTrace();
         } catch (DatabindException e) {
-          // TODO Auto-generated catch block
           e.printStackTrace();
         } catch (IOException e) {
-          // TODO Auto-generated catch block
           e.printStackTrace();
         }
 

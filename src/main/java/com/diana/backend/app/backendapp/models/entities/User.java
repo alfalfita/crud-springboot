@@ -1,15 +1,21 @@
 package com.diana.backend.app.backendapp.models.entities;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
 
 
 @Entity
@@ -35,6 +41,10 @@ public class User {
   @Column 
   @NotBlank(message = "no debe estar vacío")
   private String password;
+
+  public User(){
+    this.cursos = new ArrayList<>();
+  }
 
   public Long getId() {
     return id;
@@ -75,5 +85,40 @@ public class User {
   public void setPassword(String password) {
     this.password = password;
   }
+
+  @ManyToMany(fetch = FetchType.LAZY,
+  cascade = CascadeType.ALL)
+  private List<Product> cursos;
+
+  @Override
+  public boolean equals(Object obj) {
+    if(this == obj){
+      return true;
+    }
+    if((obj instanceof User)){
+      return false;
+    }
+
+    User s = (User) obj;
+
+    return this.id != null && this.id.equals(s.getId());
+  }
+
+  public List<Product> getCursos() {
+    return cursos;
+  }
+
+  public void setCursos(List<Product> cursos) {
+    this.cursos = cursos;
+  }
+
+  public void addCursos(Product curso) {
+    this.cursos.add(curso);
+  }
+
+  public void removeCursos(Product curso) {
+    this.cursos.removeIf( r -> r.getId() == curso.getId() );
+  }
+  
   
 }

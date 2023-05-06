@@ -40,10 +40,11 @@ public class ProductServiceImpl implements ProductService{
     Product productOptional = null;
     if(o.isPresent()){
       Product productDb = o.orElseThrow();
-      productDb.setDestination(product.getDestination());
-      productDb.setPlan(product.getPlan());
-      productDb.setStartDate(product.getStartDate());
-      productDb.setEndDate(product.getEndDate());
+      productDb.setName(product.getName());
+      productDb.setWeekday(product.getWeekday());
+      productDb.setPrice(product.getPrice());
+      productDb.setTime(product.getTime());
+      productDb.setDescription(product.getDescription());
       productOptional = this.save(productDb);
     } 
     return Optional.ofNullable(productOptional);

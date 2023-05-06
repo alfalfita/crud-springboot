@@ -4,9 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
-// import org.springframework.http.HttpStatus;
-// import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,9 +16,6 @@ public class UserServiceImpl implements UserService{
 
   @Autowired
   private UserRepository repository;
-
-  @Autowired
-  private PasswordEncoder passwordEncoder;
 
   @Override
   @Transactional(readOnly = true)
@@ -36,8 +31,11 @@ public class UserServiceImpl implements UserService{
   @Override
   @Transactional
   public User save(User user) {
-    String passwordBc = passwordEncoder.encode(user.getPassword());
-    user.setPassword(passwordBc);
+
+    String plainTextPassword = user.getPassword();
+    String hashedPassword = BCrypt.hashpw(plainTextPassword, BCrypt.gensalt());
+
+    user.setPassword(hashedPassword);
     return repository.save(user);
   }
 
@@ -62,19 +60,10 @@ public class UserServiceImpl implements UserService{
     return Optional.ofNullable(userOptional);
   }
 
-//   private Optional<User> getUserByUsername(User u) {
-//     Optional<User> ou = repository.getUserByUsername(u.getUsername());
-
-//     User userOptional = null;
-//     if(ou.isPresent()){
-//       User userDb = ou.orElseThrow();
-//       userDb.setFirstName(u.getFirstName());
-//       userDb.setLastName(u.getLastName());
-//       userDb.setUsername(u.getUsername());
-//       userOptional = this.save(userDb);
-//     } 
-//     return Optional.ofNullable(userOptional);
-// }
-
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<User> findByUsername(String username) {
+    return repository.findByUsername(username);
+  }
   
 }

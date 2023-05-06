@@ -9,9 +9,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -26,6 +28,12 @@ import com.diana.backend.app.backendapp.auth.filters.JwtValidationFilter;
 @Configuration
 public class SpringSecurityConfig {
 
+  private final UserDetailsService userDetailsService;
+
+  public SpringSecurityConfig(UserDetailsService userDetailsService) {
+    this.userDetailsService = userDetailsService;
+  }
+
   @Autowired
   private AuthenticationConfiguration authenticationConfiguration;
   
@@ -35,19 +43,19 @@ public class SpringSecurityConfig {
   }
 
   @Bean
-  AuthenticationManager authenticationManager() throws Exception{
-    return authenticationConfiguration.getAuthenticationManager();
+  AuthenticationManager authenticationManager(HttpSecurity http) throws Exception{
+    return http.getSharedObject(AuthenticationManagerBuilder.class).userDetailsService(userDetailsService).passwordEncoder(passwordEncoder()).and().build();
   }
   
   @Bean
   SecurityFilterChain filterChain(HttpSecurity http ) throws Exception{
     return 
-      http.authorizeHttpRequests()
-      .requestMatchers(HttpMethod.POST, "/api/user/")
-      .permitAll()
+      http
+      .authorizeHttpRequests()
+      .requestMatchers(HttpMethod.POST, "/api/**").permitAll()
       .anyRequest().authenticated()
       .and()
-      .addFilter(new JwtAuthenticationFilter(authenticationConfiguration.getAuthenticationManager()))
+      .addFilter(new JwtAuthenticationFilter(authenticationConfiguration.getAuthenticationManager(), userDetailsService))
       .addFilter(new JwtValidationFilter(authenticationConfiguration.getAuthenticationManager()))
       .csrf(config -> config.disable())
       .sessionManagement(managment -> managment.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -58,8 +66,8 @@ public class SpringSecurityConfig {
   @Bean
   CorsConfigurationSource corsConfigurationSource(){
     CorsConfiguration configuration = new CorsConfiguration();
-    // configuration.setAllowedOrigins(Arrays.asList("http://fr-trips.s3-website-us-east-1.amazonaws.com"));
-    configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+    // configuration.setAllowedOrigins(Arrays.asList("http://localhost:5174"));
+    configuration.setAllowedOrigins(Arrays.asList("http://fr-trips.s3-website-us-east-1.amazonaws.com"));
     configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
     configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Access-Control-Allow-Origin"));
     configuration.setAllowCredentials(true);

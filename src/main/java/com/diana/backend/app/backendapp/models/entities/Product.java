@@ -1,18 +1,22 @@
 package com.diana.backend.app.backendapp.models.entities;
 
-import java.sql.Date;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 
 @Entity
-@Table(name = "trips")
+@Table(name = "courses")
 public class Product {
   
   @Id
@@ -20,24 +24,34 @@ public class Product {
   private Long id;
 
   @Column
-  private String destination;
+  private String name;
 
   @Column
-  private String plan;
+  private String weekday;
 
   @Column
-  private Date startDate;
+  private float price;
 
-  // @Column (name="end_date")
   @Column
-  private Date endDate;
+  private LocalTime time;
 
-  @Column 
-  private Boolean isOwner;
+  @Column
+  private String description;
+
+  @Column
+  private String username;
 
   @Column
   @Email
-  private String username;
+  private String instructor;
+
+  @ManyToMany(fetch = FetchType.LAZY,
+  cascade = CascadeType.ALL)
+  private List<Student> students;
+  
+  public Product() {
+    this.students = new ArrayList<>();
+  }
 
   public Long getId() {
     return id;
@@ -47,44 +61,28 @@ public class Product {
     this.id = id;
   }
 
-  public String getDestination() {
-    return destination;
+  public List<Student> getStudents() {
+    return students;
   }
 
-  public void setDestination(String destination) {
-    this.destination = destination;
+  public void setStudents(List<Student> students) {
+    this.students = students;
   }
 
-  public Date getStartDate() {
-    return startDate;
+  public void addStudent(Student student) {
+    this.students.add(student);
   }
 
-  public void setStartDate(Date startDate) {
-    this.startDate = startDate;
+  public void removeStudent(Student student) {
+    this.students.remove(student);
   }
 
-  public Date getEndDate() {
-    return endDate;
+  public String getName() {
+    return name;
   }
 
-  public void setEndDate(Date endDate) {
-    this.endDate = endDate;
-  }
-
-  public String getPlan() {
-    return plan;
-  }
-
-  public void setPlan(String plan) {
-    this.plan = plan;
-  }
-
-  public Boolean getIsOwner() {
-    return isOwner;
-  }
-
-  public void setIsOwner(Boolean isOwner) {
-    this.isOwner = isOwner;
+  public void setName(String name) {
+    this.name = name;
   }
 
   public String getUsername() {
@@ -94,4 +92,59 @@ public class Product {
   public void setUsername(String username) {
     this.username = username;
   }
+
+  public String getWeekday() {
+    return weekday;
+  }
+
+  public void setWeekday(String weekday) {
+    this.weekday = weekday;
+  }
+
+  public float getPrice() {
+    return price;
+  }
+
+  public void setPrice(float price) {
+    this.price = price;
+  }
+
+  public LocalTime getTime() {
+    return time;
+  }
+
+  public void setTime(LocalTime time) {
+    this.time = time;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  public String getInstructor() {
+    return instructor;
+  }
+
+  public void setInstructor(String instructor) {
+    this.instructor = instructor;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if(this == obj){
+      return true;
+    }
+    if((obj instanceof Product)){
+      return false;
+    }
+
+    Product s = (Product) obj;
+
+    return this.id != null && this.id.equals(s.getId());
+  }
+
 }

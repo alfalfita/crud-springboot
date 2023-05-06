@@ -17,21 +17,27 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-// import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.diana.backend.app.backendapp.models.entities.Product;
 import com.diana.backend.app.backendapp.models.entities.User;
+import com.diana.backend.app.backendapp.services.ProductService;
 import com.diana.backend.app.backendapp.services.UserService;
 
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/user")
-@CrossOrigin(originPatterns = "*")
+@CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
+
 public class UserController {
   
   @Autowired
   private UserService userService;
+
+  @Autowired
+  private ProductService productService;
 
   @GetMapping("/listAll")
   public List<User> list(){
@@ -48,13 +54,6 @@ public class UserController {
     return ResponseEntity.notFound().build();
   }
 
-  /*
-  @PostMapping("/add")
-  @ResponseStatus(HttpStatus.CREATED)
-  public User create(@RequestBody User user){
-    return userService.save(user);
-  }*/
-
   @PostMapping("/add")
   public ResponseEntity<?> create(@Valid @RequestBody User user, BindingResult result){
     if(result.hasErrors()){
@@ -65,16 +64,7 @@ public class UserController {
 
   @PutMapping("/update/{id}")
   public ResponseEntity<?> update(@Valid @RequestBody User user, BindingResult result, @PathVariable Long id){
-    
-    /*
-    Optional<User> o = userService.findById(id);
-    if(o.isPresent()){
-      User userDb = o.orElseThrow();
-      userDb.setFirstName(user.getFirstName());
-      userDb.setLastName(user.getLastName());
-      userDb.setEmail(user.getEmail());
-      return ResponseEntity.status(HttpStatus.CREATED).body(userService.save(userDb));
-    } */
+
 
     if(result.hasErrors()){
       return validation(result);
@@ -103,6 +93,41 @@ public class UserController {
       errors.put(err.getField(), "El campo " + err.getField() + " " + err.getDefaultMessage());
     });
     return ResponseEntity.badRequest().body(errors);
+  }
+
+  @GetMapping("/search/{username}")
+  public ResponseEntity<?> search(@PathVariable String username){
+
+    return ResponseEntity.ok(userService.findByUsername(username));
+  }
+
+
+  @PutMapping("/{id}/addCourse")
+  public ResponseEntity<?> addCourse(@RequestBody Product curso,  @PathVariable Long id){
+    Optional<User> o = userService.findById(id);
+    if(o.isPresent()){
+      User usuario = o.get();
+      usuario.addCursos(curso);
+      return ResponseEntity.status(HttpStatus.CREATED).body(userService.save(usuario));
+    }
+    return ResponseEntity.notFound().build();
+  }
+
+  @PutMapping("/{id}/removeCourse")
+  public ResponseEntity<?> removeCourse(@RequestBody Product curso,  @PathVariable Long id){
+    Optional<User> o = userService.findById(id);
+    if(o.isPresent()){
+      User user = o.get();
+      user.removeCursos(curso);
+
+      Optional<Product> op = productService.findById(curso.getId());
+      if(op.isPresent()){
+        productService.remove(curso.getId());
+      }
+
+      return ResponseEntity.status(HttpStatus.CREATED).body(userService.save(user));
+    }
+    return ResponseEntity.notFound().build();
   }
 
 }
